@@ -38,6 +38,29 @@ public class TrieTree implements Serializable {
         return true;
     }
 
+    public ArrayList<String> QueryAllSubTree(String prefix){
+        ArrayList<String> ans = new ArrayList<String>();
+        TrieNode curNode = root;
+        char [] cs = prefix.toCharArray();
+//        TrieNode nxt = null;
+        for(char c: cs){
+            String nxtName = String.valueOf(c);
+            if(curNode.edge.containsKey(nxtName)){
+//                nxt = curNode.edge.get(nxtName);
+//                curNode = nxt;
+                curNode = curNode.edge.get(nxtName);
+            }
+            else{
+                curNode = null;
+                break;
+            }
+        }
+        if(curNode != null){
+//            double threshold = curNode.hit * 0.1f;
+            DeepSearchLeaves(prefix, curNode, ans, 0);
+        }
+        return ans;
+    }
 
     public ArrayList<String> QuerySubTree(String prefix){
         ArrayList<String> ans = new ArrayList<String>();
@@ -57,14 +80,15 @@ public class TrieTree implements Serializable {
             }
         }
         if(curNode != null){
-            DeepSearchLeaves(prefix, curNode, ans);
+            double threshold = curNode.hit * 0.1f;
+            DeepSearchLeaves(prefix, curNode, ans, threshold);
         }
         return ans;
     }
 
     public void ShowLeaves(){
         ArrayList<String> words = new ArrayList<String>();
-        DeepSearchLeaves("", root, words);
+        DeepSearchLeaves("", root, words, 0);
         for(String str: words){
             System.out.println(str);
         }
@@ -108,26 +132,35 @@ public class TrieTree implements Serializable {
     }
 
     /*遍历当前节点子树*/
-    public void DeepSearchLeaves(String prefix, TrieNode curNode, ArrayList<String> rstLst){
+    public void DeepSearchLeaves(String prefix, TrieNode curNode, ArrayList<String> rstLst, double threshold){
 //        System.out.println("prefix = " + prefix);
-//        boolean isLeaf = true;
+        boolean isLogicalLeaf = true;
         if(curNode.isLeaf){
             rstLst.add(prefix);
         }
+
         for(Map.Entry<String, TrieNode> entry: curNode.edge.entrySet()){
 //            if(isLeaf){
 //                isLeaf = false;
 //            }
             String nxtPrefix = prefix + entry.getKey();
             TrieNode nxtNode = entry.getValue();
-            DeepSearchLeaves(nxtPrefix, nxtNode, rstLst);
+            /*界定一个阈值，小于阈值的节点不再进行*/
+            if(nxtNode.hit < threshold){
+                continue;
+            }
+            if(isLogicalLeaf){
+                isLogicalLeaf = false;
+            }
+            DeepSearchLeaves(nxtPrefix, nxtNode, rstLst, threshold);
         }
 
-//        if(isLeaf){
-////            System.out.println(prefix);
-//            rstLst.add(prefix);
-//        }
+        if(isLogicalLeaf){
+//            System.out.println(prefix);
+            rstLst.add(prefix);
+        }
     }
+
 
 
     public static void main(String ... args) throws Exception{
@@ -161,7 +194,20 @@ public class TrieTree implements Serializable {
 
         tr = (TrieTree) oin.readObject();
         */
-        ArrayList<String> ans = tr.QuerySubTree("146");
+
+        System.out.println("query all result for: 146");
+        ArrayList<String> ans = tr.QueryAllSubTree("146");
+        for(String str: ans){
+            System.out.println(str);
+        }
+
+        System.out.println("query frequency result for: 146");
+        ans = tr.QuerySubTree("146");
+        for(String str: ans){
+            System.out.println(str);
+        }
+        System.out.println("query frequency result for: 1468");
+        ans = tr.QuerySubTree("1469");
         for(String str: ans){
             System.out.println(str);
         }
