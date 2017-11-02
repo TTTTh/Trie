@@ -34,7 +34,7 @@ public class TrieTree implements Serializable {
         }
 
         //叶子节点标记
-        curNode.isLeaf = true;
+        curNode.isEnd = true;
         return true;
     }
 
@@ -94,7 +94,7 @@ public class TrieTree implements Serializable {
         }
     }
 
-    public static List<String> readFileByLines(String filePath){
+    private static List<String> readFileByLines(String filePath){
         File file = new File(filePath);
         if(!file.exists() || !file.isFile()){
             return null;
@@ -135,13 +135,13 @@ public class TrieTree implements Serializable {
     public void DeepSearchLeaves(String prefix, TrieNode curNode, ArrayList<String> rstLst, double threshold){
 //        System.out.println("prefix = " + prefix);
         boolean isLogicalLeaf = true;
-        if(curNode.isLeaf){
+        if(curNode.isEnd){
             rstLst.add(prefix);
         }
 
         for(Map.Entry<String, TrieNode> entry: curNode.edge.entrySet()){
-//            if(isLeaf){
-//                isLeaf = false;
+//            if(isEnd){
+//                isEnd = false;
 //            }
             String nxtPrefix = prefix + entry.getKey();
             TrieNode nxtNode = entry.getValue();
@@ -161,7 +161,31 @@ public class TrieTree implements Serializable {
         }
     }
 
-
+    //是否存在关键字
+    public Boolean MatchKeyWords(List<String> contents){
+        /*枚举内容的每一行*/
+        for(String line: contents){
+            char [] cs = line.toCharArray();
+            /*枚举当前字符串的每一个子串*/
+            for(int i = 0; i < line.length(); i++){
+                TrieNode curNode = root;
+                for(int j = i; j < line.length(); j++){
+                    TrieNode nxtNode = null;
+                    String nxtName = String.valueOf(cs[i]);
+                    if(curNode.edge.containsKey(nxtName)){
+                        nxtNode = curNode.edge.get(nxtName);
+                        /*如果下一个节点是之前的某个输入的终止，返回确认信号*/
+                        if(nxtNode.isEnd){
+                            return true;
+                        }
+                        /*否则继续查询*/
+                        curNode = nxtNode;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     public static void main(String ... args) throws Exception{
         logger = Logger.getLogger("testLoger");
@@ -195,7 +219,7 @@ public class TrieTree implements Serializable {
         tr = (TrieTree) oin.readObject();
         */
 
-        System.out.println("query all result for: 146");
+       /* System.out.println("query all result for: 146");
         ArrayList<String> ans = tr.QueryAllSubTree("146");
         for(String str: ans){
             System.out.println(str);
@@ -210,6 +234,17 @@ public class TrieTree implements Serializable {
         ans = tr.QuerySubTree("1469");
         for(String str: ans){
             System.out.println(str);
-        }
+        }*/
+
+        //test for the key match
+        ArrayList<String> testArray = new ArrayList<String>();
+        testArray.add("146");
+        System.out.println(tr.MatchKeyWords(testArray));
+        testArray.add("249");
+        System.out.println(tr.MatchKeyWords(testArray));
+        testArray.add("24923");
+        System.out.println(tr.MatchKeyWords(testArray));
+        testArray.add("2492");
+        System.out.println(tr.MatchKeyWords(testArray));
     }
 }
